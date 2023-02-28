@@ -6,9 +6,11 @@ let NANONAUT_WIDTH=181;
 let NANONAUT_HEIGHT=229;
 let GROUND_Y=540;
 let NANONAUT_Y_ACCELERATION=1;
-let nanonautYSpeed=0;
+let SPACE_KEYCODE=32;
+let NANONAUT_JUMP_SPEED=20;
 
 // SETUP
+let nanonautYSpeed=0;
 
 let canvas=document.createElement('canvas');
 let c = canvas.getContext('2d');
@@ -25,11 +27,17 @@ backgroundImage.src='images/background.png';
 let nanonautX=50;
 let nanonautY=40;
 
+//when player press key down it will go to onKeyDwon()
+window.addEventListener('keydown', onKeyDown);
+window.addEventListener('keyup', onKeyUp);
+
 window.addEventListener('load', start);
 
 function start(){
     window.requestAnimationFrame(mainLoop);
 }
+
+let spaceKeyIsPressed=false;
 
 //MAIN LOOP
 
@@ -40,9 +48,31 @@ function mainLoop(){
 }
 
 //PLAYER INPUT
+
+function onKeyDown(event){
+    //listen to events and look what exactly event
+    console.log(event.keyCode);
+
+    //check if the space was entered
+    if (event.keyCode===SPACE_KEYCODE){
+        spaceKeyIsPressed=true;
+    }
+}
+
+function onKeyUp(event){
+    //listen a jump command
+    if(event.keyCode === SPACE_KEYCODE){
+        spaceKeyIsPressed=false;
+    }
+}
+
 //UPDATING
 
 function update(){
+    //
+    if(spaceKeyIsPressed){
+        nanonautYSpeed=-NANONAUT_JUMP_SPEED;
+    }
     //update man and gravity
     nanonautY+=nanonautYSpeed;
     nanonautYSpeed+=NANONAUT_Y_ACCELERATION;

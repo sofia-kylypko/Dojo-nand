@@ -1,5 +1,4 @@
 // CONSTANTS
-
 let CANVAS_WIDTH=800;
 let CANVAS_HEIGHT=600;
 let NANONAUT_WIDTH=181;
@@ -8,6 +7,11 @@ let GROUND_Y=540;
 let NANONAUT_Y_ACCELERATION=1;
 let SPACE_KEYCODE=32;
 let NANONAUT_JUMP_SPEED=20;
+let NANONAUT_X_SPEED=5;
+let BACKGROUND_WIDTH=1000;
+let NANONAUT_NR_FRAMES_PER_ROW=5;
+let NANONAUT_NR_ANIMATION_FRAMES=7;
+let NANONAUT_ANIMATION_SPEED=3;
 
 // SETUP
 let nanonautYSpeed=0;
@@ -19,28 +23,33 @@ canvas.height=CANVAS_HEIGHT;
 document.body.appendChild(canvas);
 
 let nanonautImage=new Image();
-nanonautImage.src='images/nanonaut.png';
+nanonautImage.src='images/animatedNanonaut.png';
 
 let backgroundImage=new Image();
 backgroundImage.src='images/background.png';
-
-let nanonautX=50;
-let nanonautY=40;
-
+//delete background flash in the start of game
+let nanonautX=CANVAS_WIDTH/2;
+let nanonautY=GROUND_Y-CANVAS_HEIGHT;
 //when player press key down it will go to onKeyDwon()
 window.addEventListener('keydown', onKeyDown);
 window.addEventListener('keyup', onKeyUp);
-
+//start after everythinh will be loaded
 window.addEventListener('load', start);
-
+//start point of game
 function start(){
     window.requestAnimationFrame(mainLoop);
 }
-
 //detect the jump comand
 let spaceKeyIsPressed=false;
 //variable to limit flying of model
 let nanonautIsInTheAir=false;
+//variables to fix the viewport
+let cameraX=0;
+let cameraY=0;
+//variable to store number of devided part of image to show
+let nanonautFrameNR=0;
+//count game frames
+let gameFrameCounter=0;
 
 //MAIN LOOP
 
@@ -72,6 +81,9 @@ function onKeyUp(event){
 //UPDATING
 
 function update(){
+    gameFrameCounter+=1;
+    //allows figure to move horisontally
+    nanonautX+=NANONAUT_X_SPEED;
     //to allow jumping only when figure is not in the air
     if(spaceKeyIsPressed && !nanonautIsInTheAir){
         nanonautYSpeed=-NANONAUT_JUMP_SPEED;
@@ -86,6 +98,15 @@ function update(){
         nanonautYSpeed=0;
         nanonautIsInTheAir=false;
     }
+    //update animation
+    if((gameFrameCounter%NANONAUT_ANIMATION_SPEED)===0){
+        nanonautFrameNR+=1;
+        if(nanonautFrameNR>=NANONAUT_NR_ANIMATION_FRAMES){
+            nanonautFrameNR=0;
+        }
+    }
+    //updating camera position to fix the figure and move background
+    cameraX=nanonautX-150;
 }
 
 //DRAWING
@@ -97,8 +118,14 @@ function draw(){
     c.fillRect(0,0,CANVAS_WIDTH,GROUND_Y-40);
     c.fillStyle='ForestGreen';
     c.fillRect(0, GROUND_Y-40, CANVAS_WIDTH,CANVAS_HEIGHT-GROUND_Y+40);
-    //draw background
-    c.drawImage(backgroundImage,0,-210);
+    //draw background and making it scrolls without gaps
+    let backgroundX=-(cameraX%BACKGROUND_WIDTH);
+    c.drawImage(backgroundImage,backgroundX,-210);
+    c.drawImage(backgroundImage, backgroundX+BACKGROUND_WIDTH, -210);
     //draw the man figure
-    c.drawImage(nanonautImage, nanonautX, nanonautY);
+    let nanonautSpritesSheetRow=Math.floor(nanonautFrameNR/NANONAUT_NR_FRAMES_PER_ROW);
+    let nanonautSpritesSheetColumn=nanonautFrameNR%NANONAUT_NR_FRAMES_PER_ROW;
+    let nanonautSpriteSheetX=nanonautSpritesSheetColumn*NANONAUT_WIDTH;
+    let nanonautSpriteSheetY=nanonautSpritesSheetRow*NANONAUT_HEIGHT;
+    c.drawImage(nanonautImage, nanonautSpriteSheetX, nanonautSpriteSheetY,NANONAUT_WIDTH,NANONAUT_HEIGHT, nanonautX-cameraX, nanonautY-cameraY, NANONAUT_WIDTH,NANONAUT_HEIGHT);
 }

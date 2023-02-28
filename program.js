@@ -37,7 +37,10 @@ function start(){
     window.requestAnimationFrame(mainLoop);
 }
 
+//detect the jump comand
 let spaceKeyIsPressed=false;
+//variable to limit flying of model
+let nanonautIsInTheAir=false;
 
 //MAIN LOOP
 
@@ -69,9 +72,10 @@ function onKeyUp(event){
 //UPDATING
 
 function update(){
-    //
-    if(spaceKeyIsPressed){
+    //to allow jumping only when figure is not in the air
+    if(spaceKeyIsPressed && !nanonautIsInTheAir){
         nanonautYSpeed=-NANONAUT_JUMP_SPEED;
+        nanonautIsInTheAir=true;
     }
     //update man and gravity
     nanonautY+=nanonautYSpeed;
@@ -80,6 +84,7 @@ function update(){
     if(nanonautY>(GROUND_Y-NANONAUT_HEIGHT)){
         nanonautY=GROUND_Y-NANONAUT_HEIGHT;
         nanonautYSpeed=0;
+        nanonautIsInTheAir=false;
     }
 }
 

@@ -5,6 +5,8 @@ let CANVAS_HEIGHT=600;
 let NANONAUT_WIDTH=181;
 let NANONAUT_HEIGHT=229;
 let GROUND_Y=540;
+let NANONAUT_Y_ACCELERATION=1;
+let nanonautYSpeed=0;
 
 // SETUP
 
@@ -42,10 +44,12 @@ function mainLoop(){
 
 function update(){
     //update man and gravity
-    nanonautY+=1;
+    nanonautY+=nanonautYSpeed;
+    nanonautYSpeed+=NANONAUT_Y_ACCELERATION;
     //part for figure not to go down from visible area
     if(nanonautY>(GROUND_Y-NANONAUT_HEIGHT)){
         nanonautY=GROUND_Y-NANONAUT_HEIGHT;
+        nanonautYSpeed=0;
     }
 }
 

@@ -52,11 +52,43 @@ bush1Image.src='images/bush1.png';
 let bush2Image=new Image();
 bush2Image.src='images/bush2.png';
 
-let bushXCoordinates=[550,750,1000,1200];
+//let bushXCoordinates=[550,750,1000,1200];
+// let bushData=[{
+//     x:500,
+//     y:95,
+//     image: bush1Image
+// },{
+//     x:750,
+//     y:90,
+//     image: bush2Image
+// }]
+
+let bushData=generateBushes();
 
 //start point of game
 function start(){
     window.requestAnimationFrame(mainLoop);
+}
+
+function generateBushes(){
+    let generatedBushData=[];
+    let bushX=0;
+    while(bushX<(2*CANVAS_WIDTH)){
+        let bushImage;
+        if(Math.random()>=0.5){
+            bushImage=bush1Image;
+        }else{
+            bushImage=bush2Image;
+        }
+        generatedBushData.push({
+            x:550+Math.random()*CANVAS_WIDTH*3, 
+            y:75+Math.random()*20,
+            image: bushImage
+        });
+        bushX+=150+Math.random()*250;
+    }
+    
+    return generatedBushData;
 }
 
 
@@ -117,6 +149,12 @@ function update(){
     }
     //updating camera position to fix the figure and move background
     cameraX=nanonautX-150;
+    //scroll two elements to return later
+    for(let i=0; i<bushData.length; i++){
+        if((bushData[i].x -cameraX)<-CANVAS_WIDTH){
+            bushData[i].x+=(2*CANVAS_WIDTH)+150;
+        }
+    }
 }
 
 //DRAWING
@@ -132,14 +170,10 @@ function draw(){
     let backgroundX=-(cameraX%BACKGROUND_WIDTH);
     c.drawImage(backgroundImage,backgroundX,-210);
     c.drawImage(backgroundImage, backgroundX+BACKGROUND_WIDTH, -210);
-    //draing background elements
-    c.drawImage(bush1Image, 550, GROUND_Y-95);
-    c.drawImage(bush2Image, 750, GROUND_Y-85);
 
-
-    //рисует четыре двигающихся куста на фоне
-    for(let i =0; i<bushXCoordinates.length; i++){
-        c.drawImage(bush1Image, bushXCoordinates[i]-cameraX, GROUND_Y-95-cameraY);
+    //draw elements from store
+    for(let i=0; i<bushData.length; i++){
+        c.drawImage(bushData[i].image, bushData[i].x -cameraX, GROUND_Y- bushData[i].y -cameraY);
     }
 
 

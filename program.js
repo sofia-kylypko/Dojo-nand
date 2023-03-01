@@ -11,7 +11,7 @@ let NANONAUT_X_SPEED=5;
 let BACKGROUND_WIDTH=1000;
 let NANONAUT_NR_FRAMES_PER_ROW=5;
 let NANONAUT_NR_ANIMATION_FRAMES=7;
-let NANONAUT_ANIMATION_SPEED=3;
+let NANONAUT_ANIMATION_SPEED=4;
 
 // SETUP
 let nanonautYSpeed=0;
@@ -35,10 +35,6 @@ window.addEventListener('keydown', onKeyDown);
 window.addEventListener('keyup', onKeyUp);
 //start after everythinh will be loaded
 window.addEventListener('load', start);
-//start point of game
-function start(){
-    window.requestAnimationFrame(mainLoop);
-}
 //detect the jump comand
 let spaceKeyIsPressed=false;
 //variable to limit flying of model
@@ -50,6 +46,20 @@ let cameraY=0;
 let nanonautFrameNR=0;
 //count game frames
 let gameFrameCounter=0;
+//creating background elements
+let bush1Image=new Image();
+bush1Image.src='images/bush1.png';
+let bush2Image=new Image();
+bush2Image.src='images/bush2.png';
+
+let bushXCoordinates=[550,750,1000,1200];
+
+//start point of game
+function start(){
+    window.requestAnimationFrame(mainLoop);
+}
+
+
 
 //MAIN LOOP
 
@@ -122,6 +132,17 @@ function draw(){
     let backgroundX=-(cameraX%BACKGROUND_WIDTH);
     c.drawImage(backgroundImage,backgroundX,-210);
     c.drawImage(backgroundImage, backgroundX+BACKGROUND_WIDTH, -210);
+    //draing background elements
+    c.drawImage(bush1Image, 550, GROUND_Y-95);
+    c.drawImage(bush2Image, 750, GROUND_Y-85);
+
+
+    //рисует четыре двигающихся куста на фоне
+    for(let i =0; i<bushXCoordinates.length; i++){
+        c.drawImage(bush1Image, bushXCoordinates[i]-cameraX, GROUND_Y-95-cameraY);
+    }
+
+
     //draw the man figure
     let nanonautSpritesSheetRow=Math.floor(nanonautFrameNR/NANONAUT_NR_FRAMES_PER_ROW);
     let nanonautSpritesSheetColumn=nanonautFrameNR%NANONAUT_NR_FRAMES_PER_ROW;

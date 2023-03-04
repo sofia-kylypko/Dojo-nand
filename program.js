@@ -10,12 +10,15 @@ let NANONAUT_JUMP_SPEED=20;
 let NANONAUT_X_SPEED=5;
 let BACKGROUND_WIDTH=1000;
 let NANONAUT_NR_ANIMATION_FRAMES=7;
-let NANONAUT_ANIMATION_SPEED=4;
+let NANONAUT_ANIMATION_SPEED=3;
 let ROBOT_HEIGHT=139;
 let ROBOT_WIDTH=141;
 let ROBOT_NR_ANIMATION_FRAMES=9;
 let ROBOT_ANIMATION_SPEED=5;
 let ROBOT_X_SPEED=4;
+let MIN_DISTANCE_BETWEEN_ROBOTS=600;
+let MAX_DISTANCE_BETWEEN_ROBOTS=1200;
+let MAX_ACTIVE_ROBOTS=3;
 
 // SETUP
 let nanonautYSpeed=0;
@@ -75,7 +78,9 @@ let robotData=[{
     x:400,
     y : GROUND_Y-ROBOT_HEIGHT,
     frameNr:0
-}]
+}];
+
+//let robotData=[];
 
 let bushData=generateBushes();
 
@@ -139,7 +144,7 @@ function onKeyUp(event){
 function update(){
     gameFrameCounter+=1;
     //allows figure to move horisontally
-    nanonautX+=NANONAUT_X_SPEED;
+    nanonautX+=NANONAUT_X_SPEED+2;
     //to allow jumping only when figure is not in the air
     if(spaceKeyIsPressed && !nanonautIsInTheAir){
         nanonautYSpeed=-NANONAUT_JUMP_SPEED;
@@ -183,6 +188,31 @@ function updateRobots(){
                 robotData[i].frameNr=0;
             }
         }
+    }
+    //remove robots that have gone off-screen
+    let robotIndex=0;
+    while(robotIndex<robotData.length){
+        if(robotData[robotIndex].x<cameraX-ROBOT_WIDTH) {
+            robotData.splice(robotIndex,1);
+            console.log("robot removed");
+        }else {
+            robotIndex+=1;
+        }
+    }
+
+    if(robotData.length<MAX_ACTIVE_ROBOTS){
+        
+       
+        let lastRobotX=CANVAS_WIDTH;
+        if(robotData.length>0){
+            lastRobotX=robotData[robotData.length-1].x;
+        } 
+        let newRobotX=lastRobotX+MIN_DISTANCE_BETWEEN_ROBOTS+Math.random()*(MAX_DISTANCE_BETWEEN_ROBOTS-MIN_DISTANCE_BETWEEN_ROBOTS);
+        robotData.push({
+            x: newRobotX,
+            y: GROUND_Y-ROBOT_HEIGHT,
+            frameNr:0
+        });
     }
 }
 

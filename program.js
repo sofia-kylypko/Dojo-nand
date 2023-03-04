@@ -319,6 +319,12 @@ function draw(){
     //draw the nano
     drawAnimatedSprite(nanonautX-shakenCameraX, nanonautY-shakenCameraY, nanonautFrameNR, nanonautSpriteSheet);
 
+    //draw the distance 
+    let nanonautDistance=nanonautX/100;
+    c.fillStyle='black';
+    c.font='48px sans-serif';
+    c.fillText(nanonautDistance.toFixed(0)+'m', 20,40);
+
     //draw health bar
     c.fillStyle='red';
     c.fillRect(400,10, nanonautHealth/NANONAUT_MAX_HEALTH*380,20);

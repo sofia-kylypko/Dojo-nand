@@ -7,10 +7,10 @@ let GROUND_Y=540;
 let NANONAUT_Y_ACCELERATION=1;
 let SPACE_KEYCODE=32;
 let NANONAUT_JUMP_SPEED=20;
-let NANONAUT_X_SPEED=7;
+let NANONAUT_X_SPEED=5;
 let BACKGROUND_WIDTH=1000;
 let NANONAUT_NR_ANIMATION_FRAMES=7;
-let NANONAUT_ANIMATION_SPEED=2;
+let NANONAUT_ANIMATION_SPEED=3;
 let ROBOT_HEIGHT=139;
 let ROBOT_WIDTH=141;
 let ROBOT_NR_ANIMATION_FRAMES=9;
@@ -21,6 +21,8 @@ let MAX_DISTANCE_BETWEEN_ROBOTS=1200;
 let MAX_ACTIVE_ROBOTS=3;
 let SCREENSHAKE_RADIUS=16;
 let NANONAUT_MAX_HEALTH=100;
+let PLAY_GAME_MODE=0;
+let GAME_OVER_MODE=1;
 
 // SETUP
 let nanonautYSpeed=0;
@@ -124,6 +126,7 @@ function generateBushes(){
 }
 
 let nanonautHealth=NANONAUT_MAX_HEALTH;
+let gameMode=PLAY_GAME_MODE;
 
 
 
@@ -157,6 +160,7 @@ function onKeyUp(event){
 //UPDATING
 
 function update(){
+    if(gameMode!=PLAY_GAME_MODE) return;
     gameFrameCounter+=1;
     //allows figure to move horisontally
     nanonautX+=NANONAUT_X_SPEED+2;
@@ -196,6 +200,12 @@ function update(){
     if(nanonautTouchedRobot){
         screenshake=true;
         if(nanonautHealth>0) nanonautHealth-=1;
+    }
+
+    //check if the game is over
+    if(nanonautHealth<=0){
+        gameMode=GAME_OVER_MODE;
+        screenshake=false;
     }
 
 }
@@ -314,6 +324,13 @@ function draw(){
     c.fillRect(400,10, nanonautHealth/NANONAUT_MAX_HEALTH*380,20);
     c.strokeStyle='red';
     c.strokeRect(400,10,380,20);
+
+    //drawing when the game is over
+    if(gameMode==GAME_OVER_MODE){
+        c.fillStyle='black';
+        c.font='96px sans-serif';
+        c.fillText('GAME OVER',120,300);
+    }
 
     //draw animated sprite
     function drawAnimatedSprite(screenX, screenY, frameNr, spriteSheet){

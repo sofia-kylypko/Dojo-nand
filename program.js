@@ -7,10 +7,10 @@ let GROUND_Y=540;
 let NANONAUT_Y_ACCELERATION=1;
 let SPACE_KEYCODE=32;
 let NANONAUT_JUMP_SPEED=20;
-let NANONAUT_X_SPEED=5;
+let NANONAUT_X_SPEED=7;
 let BACKGROUND_WIDTH=1000;
 let NANONAUT_NR_ANIMATION_FRAMES=7;
-let NANONAUT_ANIMATION_SPEED=3;
+let NANONAUT_ANIMATION_SPEED=2;
 let ROBOT_HEIGHT=139;
 let ROBOT_WIDTH=141;
 let ROBOT_NR_ANIMATION_FRAMES=9;
@@ -19,10 +19,12 @@ let ROBOT_X_SPEED=4;
 let MIN_DISTANCE_BETWEEN_ROBOTS=600;
 let MAX_DISTANCE_BETWEEN_ROBOTS=1200;
 let MAX_ACTIVE_ROBOTS=3;
+let SCREENSHAKE_RADIUS=16;
+let NANONAUT_MAX_HEALTH=100;
 
 // SETUP
 let nanonautYSpeed=0;
-
+let screenshake=false;
 let canvas=document.createElement('canvas');
 let c = canvas.getContext('2d');
 canvas.width=CANVAS_WIDTH;
@@ -75,12 +77,23 @@ let robotSpriteSheet={
 };
 
 let robotData=[{
-    x:400,
+    x:1000,
     y : GROUND_Y-ROBOT_HEIGHT,
     frameNr:0
 }];
 
-//let robotData=[];
+let nanonautCollisionRectangle={
+    xOffset:60,
+    yOffset:20,
+    width:50, 
+    height:200
+};
+let robotCollisionRectangle={
+    xOffset:50,
+    yOffset:20,
+    width:50, 
+    height:100
+};
 
 let bushData=generateBushes();
 
@@ -109,6 +122,8 @@ function generateBushes(){
     
     return generatedBushData;
 }
+
+let nanonautHealth=NANONAUT_MAX_HEALTH;
 
 
 
@@ -175,12 +190,28 @@ function update(){
         }
     }
     //update robot
-    updateRobots();
+    // updateRobots();
+    screenshake=false;
+    var nanonautTouchedRobot=updateRobots();
+    if(nanonautTouchedRobot){
+        screenshake=true;
+        if(nanonautHealth>0) nanonautHealth-=1;
+    }
+
 }
 
 function updateRobots(){
     //move and animate robot
+    let nanonautTouchedRobot=false;
     for(let i =0; i<robotData.length; i++){
+        if(doesOverlapRobot(nanonautX+nanonautCollisionRectangle.xOffset, nanonautY+nanonautCollisionRectangle.yOffset, nanonautCollisionRectangle.width,
+            nanonautCollisionRectangle.height,
+            robotData[i].x +robotCollisionRectangle.xOffset,
+            robotData[i].y +robotCollisionRectangle.yOffset,
+            robotCollisionRectangle.width,
+            robotCollisionRectangle.height)){
+                nanonautTouchedRobot=true;
+        }
         robotData[i].x-=ROBOT_X_SPEED;
         if((gameFrameCounter%ROBOT_ANIMATION_SPEED)===0){
             robotData[i].frameNr+=1;
@@ -214,11 +245,45 @@ function updateRobots(){
             frameNr:0
         });
     }
+    return nanonautTouchedRobot;
+}
+
+function doesOverlap(nanonautNearX, nanonautFarX, robotNearX, robotFarX){
+    let nanonautOverlapsNearRobotEdge=(nanonautFarX>=robotNearX) && (nanonautFarX<=robotFarX);
+    let nanonautOverlapsFarRobotEdge=(nanonautNearX>=robotNearX) && (nanonautNearX<= robotFarX);
+    let nanonautOverlapsEntireRobot=(nanonautNearX<=robotNearX) && (nanonautFarX>=robotFarX);
+    return nanonautOverlapsNearRobotEdge || nanonautOverlapsFarRobotEdge || nanonautOverlapsEntireRobot;
+}
+
+function doesOverlapRobot(nanonautX, nanonautY, nanonautWidth, nanonautHeight, robotX , robotY, robotWidth, robotHeight){
+    let nanonautOverlapsRobotOnXAxis=doesOverlap(
+        nanonautX, 
+        nanonautX+nanonautWidth, 
+        robotX, 
+        robotX+robotWidth
+    );
+    let nanonautOverlapsRobotOnYAxis=doesOverlap(
+        nanonautY, 
+        nanonautY+nanonautHeight,
+        robotY, 
+        robotY+robotHeight
+    );
+    return nanonautOverlapsRobotOnXAxis && nanonautOverlapsRobotOnYAxis;
 }
 
 //DRAWING
 
 function draw(){
+    //shake camera if necessary
+    let shakenCameraX=cameraX;
+    let shakenCameraY=cameraY;
+    if(screenshake){
+        //to do:shake camera at X and Y
+        shakenCameraX+=(Math.random()-.5)*SCREENSHAKE_RADIUS;
+        shakenCameraY+=(Math.random()-.5)*SCREENSHAKE_RADIUS;
+
+    }
+
     c.clearRect(0, 0 , CANVAS_WIDTH, CANVAS_HEIGHT);
     //draw the background: sky, ground 
     c.fillStyle='LightSkyBlue';
@@ -226,30 +291,29 @@ function draw(){
     c.fillStyle='ForestGreen';
     c.fillRect(0, GROUND_Y-40, CANVAS_WIDTH,CANVAS_HEIGHT-GROUND_Y+40);
     //draw background and making it scrolls without gaps
-    let backgroundX=-(cameraX%BACKGROUND_WIDTH);
+    let backgroundX=-(shakenCameraX%BACKGROUND_WIDTH);
     c.drawImage(backgroundImage,backgroundX,-210);
     c.drawImage(backgroundImage, backgroundX+BACKGROUND_WIDTH, -210);
 
     //draw elements from store
     for(let i=0; i<bushData.length; i++){
-        c.drawImage(bushData[i].image, bushData[i].x -cameraX, GROUND_Y- bushData[i].y -cameraY);
+        c.drawImage(bushData[i].image, bushData[i].x -shakenCameraX, GROUND_Y- bushData[i].y -shakenCameraY);
     }
 
     //draw the robot
     for(let i=0; i<robotData.length; i++){
-        drawAnimatedSprite(robotData[i].x-cameraX,
-            robotData[i].y -cameraY, robotData[i].frameNr, robotSpriteSheet);
+        drawAnimatedSprite(robotData[i].x-shakenCameraX,
+            robotData[i].y -shakenCameraY, robotData[i].frameNr, robotSpriteSheet);
     }
 
     //draw the nano
-    drawAnimatedSprite(nanonautX-cameraX, nanonautY-cameraY, nanonautFrameNR, nanonautSpriteSheet);
+    drawAnimatedSprite(nanonautX-shakenCameraX, nanonautY-shakenCameraY, nanonautFrameNR, nanonautSpriteSheet);
 
-    // //draw the man figure
-    // let nanonautSpritesSheetRow=Math.floor(nanonautFrameNR/NANONAUT_NR_FRAMES_PER_ROW);
-    // let nanonautSpritesSheetColumn=nanonautFrameNR%NANONAUT_NR_FRAMES_PER_ROW;
-    // let nanonautSpriteSheetX=nanonautSpritesSheetColumn*NANONAUT_WIDTH;
-    // let nanonautSpriteSheetY=nanonautSpritesSheetRow*NANONAUT_HEIGHT;
-    // c.drawImage(nanonautImage, nanonautSpriteSheetX, nanonautSpriteSheetY,NANONAUT_WIDTH,NANONAUT_HEIGHT, nanonautX-cameraX, nanonautY-cameraY, NANONAUT_WIDTH,NANONAUT_HEIGHT);
+    //draw health bar
+    c.fillStyle='red';
+    c.fillRect(400,10, nanonautHealth/NANONAUT_MAX_HEALTH*380,20);
+    c.strokeStyle='red';
+    c.strokeRect(400,10,380,20);
 
     //draw animated sprite
     function drawAnimatedSprite(screenX, screenY, frameNr, spriteSheet){

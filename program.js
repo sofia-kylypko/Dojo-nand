@@ -9,9 +9,13 @@ let SPACE_KEYCODE=32;
 let NANONAUT_JUMP_SPEED=20;
 let NANONAUT_X_SPEED=5;
 let BACKGROUND_WIDTH=1000;
-let NANONAUT_NR_FRAMES_PER_ROW=5;
 let NANONAUT_NR_ANIMATION_FRAMES=7;
 let NANONAUT_ANIMATION_SPEED=4;
+let ROBOT_HEIGHT=139;
+let ROBOT_WIDTH=141;
+let ROBOT_NR_ANIMATION_FRAMES=9;
+let ROBOT_ANIMATION_SPEED=5;
+let ROBOT_X_SPEED=4;
 
 // SETUP
 let nanonautYSpeed=0;
@@ -24,7 +28,8 @@ document.body.appendChild(canvas);
 
 let nanonautImage=new Image();
 nanonautImage.src='images/animatedNanonaut.png';
-
+let robotImage=new Image();
+robotImage.src="images/animatedRobot.png";
 let backgroundImage=new Image();
 backgroundImage.src='images/background.png';
 //delete background flash in the start of game
@@ -52,16 +57,25 @@ bush1Image.src='images/bush1.png';
 let bush2Image=new Image();
 bush2Image.src='images/bush2.png';
 
-//let bushXCoordinates=[550,750,1000,1200];
-// let bushData=[{
-//     x:500,
-//     y:95,
-//     image: bush1Image
-// },{
-//     x:750,
-//     y:90,
-//     image: bush2Image
-// }]
+let nanonautSpriteSheet={
+    nrFramesPerRow: 5,
+    spriteWidth: NANONAUT_WIDTH, 
+    spriteHeight: NANONAUT_HEIGHT,
+    image: nanonautImage
+}
+
+let robotSpriteSheet={
+    nrFramesPerRow:3,
+    spriteWidth: ROBOT_WIDTH,
+    spriteHeight: ROBOT_HEIGHT,
+    image: robotImage
+};
+
+let robotData=[{
+    x:400,
+    y : GROUND_Y-ROBOT_HEIGHT,
+    frameNr:0
+}]
 
 let bushData=generateBushes();
 
@@ -155,6 +169,21 @@ function update(){
             bushData[i].x+=(2*CANVAS_WIDTH)+150;
         }
     }
+    //update robot
+    updateRobots();
+}
+
+function updateRobots(){
+    //move and animate robot
+    for(let i =0; i<robotData.length; i++){
+        robotData[i].x-=ROBOT_X_SPEED;
+        if((gameFrameCounter%ROBOT_ANIMATION_SPEED)===0){
+            robotData[i].frameNr+=1;
+            if(robotData[i].frameNr>=ROBOT_NR_ANIMATION_FRAMES){
+                robotData[i].frameNr=0;
+            }
+        }
+    }
 }
 
 //DRAWING
@@ -176,11 +205,34 @@ function draw(){
         c.drawImage(bushData[i].image, bushData[i].x -cameraX, GROUND_Y- bushData[i].y -cameraY);
     }
 
+    //draw the robot
+    for(let i=0; i<robotData.length; i++){
+        drawAnimatedSprite(robotData[i].x-cameraX,
+            robotData[i].y -cameraY, robotData[i].frameNr, robotSpriteSheet);
+    }
 
-    //draw the man figure
-    let nanonautSpritesSheetRow=Math.floor(nanonautFrameNR/NANONAUT_NR_FRAMES_PER_ROW);
-    let nanonautSpritesSheetColumn=nanonautFrameNR%NANONAUT_NR_FRAMES_PER_ROW;
-    let nanonautSpriteSheetX=nanonautSpritesSheetColumn*NANONAUT_WIDTH;
-    let nanonautSpriteSheetY=nanonautSpritesSheetRow*NANONAUT_HEIGHT;
-    c.drawImage(nanonautImage, nanonautSpriteSheetX, nanonautSpriteSheetY,NANONAUT_WIDTH,NANONAUT_HEIGHT, nanonautX-cameraX, nanonautY-cameraY, NANONAUT_WIDTH,NANONAUT_HEIGHT);
+    //draw the nano
+    drawAnimatedSprite(nanonautX-cameraX, nanonautY-cameraY, nanonautFrameNR, nanonautSpriteSheet);
+
+    // //draw the man figure
+    // let nanonautSpritesSheetRow=Math.floor(nanonautFrameNR/NANONAUT_NR_FRAMES_PER_ROW);
+    // let nanonautSpritesSheetColumn=nanonautFrameNR%NANONAUT_NR_FRAMES_PER_ROW;
+    // let nanonautSpriteSheetX=nanonautSpritesSheetColumn*NANONAUT_WIDTH;
+    // let nanonautSpriteSheetY=nanonautSpritesSheetRow*NANONAUT_HEIGHT;
+    // c.drawImage(nanonautImage, nanonautSpriteSheetX, nanonautSpriteSheetY,NANONAUT_WIDTH,NANONAUT_HEIGHT, nanonautX-cameraX, nanonautY-cameraY, NANONAUT_WIDTH,NANONAUT_HEIGHT);
+
+    //draw animated sprite
+    function drawAnimatedSprite(screenX, screenY, frameNr, spriteSheet){
+        let spriteSheetRow=Math.floor(frameNr/spriteSheet.nrFramesPerRow);
+        let spriteSheetColumn=frameNr%spriteSheet.nrFramesPerRow;
+        let spriteSheetX=spriteSheetColumn*spriteSheet.spriteWidth;
+        let spriteSheetY=spriteSheetRow*spriteSheet.spriteHeight;
+        c.drawImage(
+            spriteSheet.image,
+            spriteSheetX, spriteSheetY,
+            spriteSheet.spriteWidth, spriteSheet.spriteHeight, screenX, screenY,
+            spriteSheet.spriteWidth, spriteSheet.spriteHeight
+        );
+    }
+
 }
